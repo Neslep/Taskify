@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Taskify.API.Mapper.MappingProfiles;
 
 namespace Taskify.API.Mapper
 {
@@ -10,7 +11,7 @@ namespace Taskify.API.Mapper
             {
                 cfg.ShouldMapProperty = p => p.GetMethod?.IsPublic == true || p.GetMethod?.IsAssembly == true;
 
-                //cfg.AddProfile<>();
+                cfg.AddProfile<UserMappingProfile>();
             });
 
             return config.CreateMapper();
