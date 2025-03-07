@@ -12,6 +12,7 @@ namespace Taskify.API.Mapper
                 cfg.ShouldMapProperty = p => p.GetMethod?.IsPublic == true || p.GetMethod?.IsAssembly == true;
 
                 cfg.AddProfile<UserMappingProfile>();
+                cfg.AddProfile<ProjectMappingProfile>();
             });
 
             return config.CreateMapper();

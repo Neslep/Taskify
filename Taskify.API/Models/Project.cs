@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Taskify.API.Enums;
 
 namespace Taskify.API.Models
 {
@@ -10,6 +11,7 @@ namespace Taskify.API.Models
         public string ProjectName { get; set; } = string.Empty;
         [Column(TypeName = "nvarchar(max)")]
         public string Description { get; set; } = string.Empty;
+        public ProjectStatus ProjectStatus { get; set; } 
         public int? OwnerId { get; set; }
         [ForeignKey(nameof(OwnerId))]
         public User? Owner { get; set; }
