@@ -52,4 +52,9 @@
         Pending,
         Done
     }
+    public enum ProjectStatus
+    {
+        NotStarted,
+        InProgress,
+    }
 }

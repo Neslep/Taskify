@@ -98,9 +98,9 @@ builder.Services.AddDbContext<TaskifyContext>(options =>
 // Đăng ký các Repository
 builder.Services.AddScoped<IAdminRepository, AdminRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IProjectRepository, ProjectRepository>();
 
 var app = builder.Build();
-
 // Hiển thị Swagger khi ở môi trường Development
 if (app.Environment.IsDevelopment())
 {
