@@ -16,6 +16,7 @@ public class ProjectRepository : RepositoryBase, IProjectRepository
     public async Task<Project> AddAsync(Project entity)
     {
         entity.LastModifiedDate = DateTime.UtcNow;
+        
         await _dbContext.Projects.AddAsync(entity);
         await _dbContext.SaveChangesAsync();
         return entity;

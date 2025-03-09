@@ -1,6 +1,5 @@
 using AutoMapper;
 using Taskify.API.DTOs.Requests;
-using Taskify.API.DTOs.Responses.ProjectDTOs;
 using Taskify.API.Models;
 
 namespace Taskify.API.Mapper.MappingProfiles
@@ -9,7 +8,8 @@ namespace Taskify.API.Mapper.MappingProfiles
     {
         public ProjectMappingProfile()
         {
-            CreateMap<Project, ProjectRequest>().ReverseMap();
+            CreateMap<Project, UpdateProjectRequest>().ReverseMap();
+            CreateMap<Project, CreateProjectRequest>().ReverseMap();
         }
     }
 }
