@@ -6,7 +6,7 @@ namespace Taskify.API.Models
     public class User : BaseModel
     {
         [Required]
-        [MaxLength(100)]
+        [MaxLength(255)]
         public string UserName { get; set; } = string.Empty;
         [Required]
         [EmailAddress]

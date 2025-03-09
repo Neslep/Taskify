@@ -13,9 +13,19 @@ namespace Taskify.API.Services.Repositories.Repositories
         {
         }
 
-        public Task<User> AddAsync(User entity)
+        public async Task<User> AddAsync(User entity)
         {
-            throw new NotImplementedException();
+            var userList = await _dbContext.Users.Where(o => o.Email.ToLower().Contains(entity.Email.ToLower())).ToListAsync();
+
+            if (userList.Any())
+            {
+                throw new BadRequestException("Email has existed");
+            }
+
+            entity.PasswordHash = HashPassword(entity.PasswordHash);
+            await _dbContext.Users.AddAsync(entity);
+            await _dbContext.SaveChangesAsync();
+            return entity;
         }
 
         public Task<bool> DeleteAsync(User entity)

@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
-using System.Security.Claims;
 using Taskify.API.DTOs.Requests;
 using Taskify.API.DTOs.Responses.UserDTOs;
 using Taskify.API.Exceptions;
@@ -51,6 +50,15 @@ namespace Taskify.API.Controllers
 
             var response = LazyMapper.Mapper.Map<UserResponse>(user);
             return CreateResponse<UserResponse>(true, "Request processed successfully.", HttpStatusCode.OK, response);
+        }
+
+        [HttpPost]
+        [Route("/api/users")]
+        public async Task<IActionResult> CreateUser(CreateUserRequest request)
+        {
+            User user = LazyMapper.Mapper.Map<User>(request);
+            user = await _userRepository.AddAsync(user);
+            return CreateResponse<string>(true, "Request processed successfully.", HttpStatusCode.OK, "Add userId " + user.Id + " successfully");
         }
     }
 }
