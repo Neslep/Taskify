@@ -2,8 +2,8 @@ using System.Net;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Taskify.API.DTOs.Requests;
+using Taskify.API.DTOs.Responses.ProjectDTOs;
 using Taskify.API.Enums;
-using Taskify.API.Exceptions;
 using Taskify.API.Mapper;
 using Taskify.API.Models;
 using Taskify.API.Services.Repositories.IRepositories;
@@ -14,7 +14,6 @@ namespace Taskify.API.Controllers;
 public class ProjectController : BaseController<ProjectController>
 {
     private readonly IProjectRepository _projectRepositories;
-    private readonly IUserRepository _userRepository;
 
     public ProjectController(IProjectRepository projectRepository)
     {
@@ -31,12 +30,16 @@ public class ProjectController : BaseController<ProjectController>
         // Map the project from the request
         var project = LazyMapper.Mapper.Map<Project>(request);
         project.OwnerId = userId.GetValueOrDefault();
-        
-        project.UserProjects.Add(new UserProject
+
+        // Ensure UserId is set before adding UserProject
+        if (!project.UserProjects.Any(up => up.UserId == userId.GetValueOrDefault() && up.RoleInProject == ProjectRole.Owner))
         {
-            UserId = userId.GetValueOrDefault(),
-            RoleInProject = ProjectRole.Owner
-        });
+            project.UserProjects.Add(new UserProject
+            {
+                UserId = userId.GetValueOrDefault(),
+                RoleInProject = ProjectRole.Owner
+            });
+        }
         
         if (request.MemberIds != null)
         {
@@ -61,10 +64,11 @@ public class ProjectController : BaseController<ProjectController>
     public async Task<IActionResult> GetProjects()
     {
         var userId = GetUserIdFromToken();
-        var projects = await _projectRepositories.GetAllAsync(x => x.OwnerId == userId.Value || x.UserProjects.Any(up => up.UserId == userId.Value));
+        var projects = await _projectRepositories.GetAllAsync(x => userId != null && (x.OwnerId == userId.Value || x.UserProjects.Any(up => up.UserId == userId.Value)));
         
+        var response = LazyMapper.Mapper.Map<IEnumerable<ProjectResponse>>(projects);
         
-        return CreateResponse(true, "Request processed successfully.", HttpStatusCode.OK, projects);
+        return CreateResponse(true, "Request processed successfully.", HttpStatusCode.OK, response);
     }
 
     [HttpPut]
@@ -74,13 +78,12 @@ public class ProjectController : BaseController<ProjectController>
     {
         var userId = GetUserIdFromToken();
         var project = await _projectRepositories.GetByIdAsync(id);
-        if (project == null) throw new NotFoundException("Project not found.");
         
-        var userProject = project.UserProjects.FirstOrDefault(x => x.UserId == userId);
-        if (userProject == null || userProject.RoleInProject != ProjectRole.Owner)
+        if (project.OwnerId != userId)
         {
-            throw new Exception("Forbidden: Only the owner can update the project.");
+            throw new Exception("You are not authorized to update this project.");
         }
+        
         
         var updatedProject = LazyMapper.Mapper.Map(request, project);
         await _projectRepositories.UpdateAsync(updatedProject);
@@ -95,12 +98,9 @@ public class ProjectController : BaseController<ProjectController>
     {
         var userId = GetUserIdFromToken();
         var project = await _projectRepositories.GetByIdAsync(id);
-        if (project == null) throw new NotFoundException("Project not found.");
-        
-        var userProject = project.UserProjects.FirstOrDefault(x => x.UserId == userId);
-        if (userProject == null || userProject.RoleInProject != ProjectRole.Owner)
+        if (project.OwnerId != userId)
         {
-            throw new Exception("Forbidden: Only the owner can delete the project.");
+            throw new Exception("You are not authorized to update this project.");
         }
 
         await _projectRepositories.DeleteAsync(project);

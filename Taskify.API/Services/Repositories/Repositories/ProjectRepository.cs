@@ -44,11 +44,21 @@ public class ProjectRepository : RepositoryBase, IProjectRepository
     
     public async Task<IReadOnlyList<Project>> GetAllAsync(Expression<Func<Project, bool>> predicate)
     {
-        var products = await _dbContext.Projects.Where(predicate).ToListAsync();
-        if (!products.Any())
+        var projects = await _dbContext.Projects
+            .Include(p => p.UserProjects)
+            .ThenInclude(up => up.User)
+            .Include(p => p.Tasks)
+            .Include(p => p.Kanbans)
+            .Include(p => p.Todolists)
+            .Where(predicate)
+            .ToListAsync();
+
+        if (!projects.Any())
         {
-            throw new NotFoundException("");
+            throw new NotFoundException("No projects found.");
         }
+
+        return projects;
         return await _dbContext.Projects.Where(predicate).ToListAsync();
     }
 
