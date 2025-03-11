@@ -71,6 +71,11 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
+builder.Services.AddControllers().AddJsonOptions(options =>
+{
+    options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve;
+});
+
 // Cấu hình JWT
 builder.Services.AddAuthentication(options =>
 {
