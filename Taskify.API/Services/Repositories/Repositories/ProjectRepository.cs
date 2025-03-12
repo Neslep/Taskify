@@ -53,13 +53,9 @@ public class ProjectRepository : RepositoryBase, IProjectRepository
             .Where(predicate)
             .ToListAsync();
 
-        if (!projects.Any())
-        {
-            throw new NotFoundException("No projects found.");
-        }
+        
 
         return projects;
-        return await _dbContext.Projects.Where(predicate).ToListAsync();
     }
 
     public async Task<Project?> GetByIdAsync(int id)

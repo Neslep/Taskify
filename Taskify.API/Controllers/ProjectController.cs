@@ -14,10 +14,14 @@ namespace Taskify.API.Controllers;
 public class ProjectController : BaseController<ProjectController>
 {
     private readonly IProjectRepository _projectRepositories;
+    private readonly IUserRepository _userRepository;
+    private readonly IUserProjectRepository _userProjectRepository;
 
-    public ProjectController(IProjectRepository projectRepository)
+    public ProjectController(IProjectRepository projectRepository, IUserRepository userRepository, IUserProjectRepository userProjectRepository)
     {
         _projectRepositories = projectRepository ?? throw new ArgumentNullException(nameof(projectRepository));
+        _userRepository = userRepository;
+        _userProjectRepository = userProjectRepository;
     }
 
     [HttpPost]
@@ -25,14 +29,14 @@ public class ProjectController : BaseController<ProjectController>
     public async Task<IActionResult> CreateProject(CreateProjectRequest request)
     {
         var userId = GetUserIdFromToken();
-        
 
         // Map the project from the request
         var project = LazyMapper.Mapper.Map<Project>(request);
         project.OwnerId = userId.GetValueOrDefault();
 
         // Ensure UserId is set before adding UserProject
-        if (!project.UserProjects.Any(up => up.UserId == userId.GetValueOrDefault() && up.RoleInProject == ProjectRole.Owner))
+        if (!project.UserProjects.Any(up =>
+                up.UserId == userId.GetValueOrDefault() && up.RoleInProject == ProjectRole.Owner))
         {
             project.UserProjects.Add(new UserProject
             {
@@ -40,19 +44,25 @@ public class ProjectController : BaseController<ProjectController>
                 RoleInProject = ProjectRole.Owner
             });
         }
-        
-        if (request.MemberIds != null)
+
+        if (request.MemberEmails != null)
         {
-            foreach (var memberId in request.MemberIds)
+            var validEmails = request.MemberEmails.Where(email => !string.IsNullOrWhiteSpace(email)).ToList();
+            foreach (var email in validEmails)
             {
+                var user = await _userRepository.GetUserByEmailAsync(email);
+                if (user == null)
+                {
+                    throw new Exception($"User with email {email} not found.");
+                }
+
                 project.UserProjects.Add(new UserProject
                 {
-                    UserId = memberId,
+                    UserId = user.Id,
                     RoleInProject = ProjectRole.Member
                 });
             }
         }
-
 
         project = await _projectRepositories.AddAsync(project);
         return CreateResponse(true, "Request processed successfully.", HttpStatusCode.OK,
@@ -64,10 +74,11 @@ public class ProjectController : BaseController<ProjectController>
     public async Task<IActionResult> GetProjects()
     {
         var userId = GetUserIdFromToken();
-        var projects = await _projectRepositories.GetAllAsync(x => userId != null && (x.OwnerId == userId.Value || x.UserProjects.Any(up => up.UserId == userId.Value)));
-        
+        var projects = await _projectRepositories.GetAllAsync(x =>
+            userId != null && (x.OwnerId == userId.Value || x.UserProjects.Any(up => up.UserId == userId.Value)));
+
         var response = LazyMapper.Mapper.Map<IEnumerable<ProjectResponse>>(projects);
-        
+
         return CreateResponse(true, "Request processed successfully.", HttpStatusCode.OK, response);
     }
 
@@ -78,14 +89,46 @@ public class ProjectController : BaseController<ProjectController>
     {
         var userId = GetUserIdFromToken();
         var project = await _projectRepositories.GetByIdAsync(id);
-        
+
         if (project.OwnerId != userId)
         {
             throw new Exception("You are not authorized to update this project.");
         }
-        
-        
+
+
         var updatedProject = LazyMapper.Mapper.Map(request, project);
+
+        if (request.MemberEmails != null)
+        {
+            var validEmails = request.MemberEmails.Where(email => !string.IsNullOrWhiteSpace(email)).ToList();
+            foreach (var email in validEmails)
+            {
+                var user = await _userRepository.GetUserByEmailAsync(email);
+                if (user == null)
+                {
+                    return BadRequest($"User with email {email} not found.");
+                }
+
+                var isEmailInProject = await _userProjectRepository.IsEmailInProjectAsync(email, id);
+                if (isEmailInProject)
+                {
+                    var existingUserProject = updatedProject.UserProjects.FirstOrDefault(up => up.UserId == user.Id);
+                    if (existingUserProject != null)
+                    {
+                        updatedProject.UserProjects.Remove(existingUserProject);
+                    }
+                }
+                else
+                {
+                    updatedProject.UserProjects.Add(new UserProject
+                    {
+                        UserId = user.Id,
+                        RoleInProject = ProjectRole.Member
+                    });
+                }
+            }
+        }
+        
         await _projectRepositories.UpdateAsync(updatedProject);
         return CreateResponse(true, "Request processed successfully.", HttpStatusCode.OK,
             "Update project " + updatedProject.Id + " successfully");
