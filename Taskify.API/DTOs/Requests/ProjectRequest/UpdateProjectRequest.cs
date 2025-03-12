@@ -5,5 +5,6 @@ namespace Taskify.API.DTOs.Requests;
 public record UpdateProjectRequest(
     string ProjectName,
     string Description,
-    ProjectStatus ProjectStatus
+    ProjectStatus ProjectStatus,
+    List<string>? MemberEmails
     );

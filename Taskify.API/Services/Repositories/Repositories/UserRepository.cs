@@ -70,5 +70,11 @@ namespace Taskify.API.Services.Repositories.Repositories
             }
             return user;
         }
+        
+        public async Task<User?> GetUserByEmailAsync(string email)
+        {
+            return await _dbContext.Users.FirstOrDefaultAsync(u => u.Email == email);
+        }
+        
     }
 }

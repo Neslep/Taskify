@@ -1,11 +1,11 @@
-using Taskify.API.Enums;
+    using Taskify.API.Enums;
 
-namespace Taskify.API.DTOs.Requests;
+    namespace Taskify.API.DTOs.Requests;
 
-public record CreateProjectRequest(
-    string ProjectName,
-    string Description,
-    ProjectStatus ProjectStatus,
-    List<int>? MemberIds
-    
-    );
+    public record CreateProjectRequest(
+        string ProjectName,
+        string Description,
+        ProjectStatus ProjectStatus,
+        List<string>? MemberEmails
+        
+        );
