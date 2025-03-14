@@ -150,4 +150,31 @@ public class ProjectController : BaseController<ProjectController>
         return CreateResponse(true, "Request processed successfully.", HttpStatusCode.OK,
             "Delete project " + project.Id + " successfully");
     }
+    
+    [HttpGet]
+    [Route("owned-project-members")]
+    [Authorize(Roles = "Admin,User")]
+    public async Task<IActionResult> GetOwnedProjectMembers()
+    {
+        var userId = GetUserIdFromToken();
+        var projects = await _projectRepositories.GetAllAsync(p => p.OwnerId == userId);
+
+        var members = new List<User>();
+
+        foreach (var project in projects)
+        {
+            var projectMembers = project.UserProjects
+                .Where(up => up.RoleInProject == ProjectRole.Member)
+                .Select(up => up.User)
+                .ToList();
+
+            members.AddRange(projectMembers);
+        }
+
+        var distinctMembers = members.Distinct().ToList();
+
+        var response = LazyMapper.Mapper.Map<IEnumerable<UserResponse>>(distinctMembers);
+
+        return CreateResponse(true, "Request processed successfully.", HttpStatusCode.OK, response);
+    }
 }
