@@ -1,6 +1,6 @@
-using System.Net;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Net;
 using Taskify.API.DTOs.Requests;
 using Taskify.API.DTOs.Responses.ProjectDTOs;
 using Taskify.API.Enums;
@@ -128,7 +128,7 @@ public class ProjectController : BaseController<ProjectController>
                 }
             }
         }
-        
+
         await _projectRepositories.UpdateAsync(updatedProject);
         return CreateResponse(true, "Request processed successfully.", HttpStatusCode.OK,
             "Update project " + updatedProject.Id + " successfully");
@@ -150,7 +150,7 @@ public class ProjectController : BaseController<ProjectController>
         return CreateResponse(true, "Request processed successfully.", HttpStatusCode.OK,
             "Delete project " + project.Id + " successfully");
     }
-    
+
     [HttpGet]
     [Route("owned-project-members")]
     [Authorize(Roles = "Admin,User")]

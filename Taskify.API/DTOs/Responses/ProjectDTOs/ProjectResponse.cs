@@ -7,7 +7,7 @@ public class ProjectResponse
     public int Id { get; set; }
     public string ProjectName { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
-    public ProjectStatus ProjectStatus { get; set; } 
+    public ProjectStatus ProjectStatus { get; set; }
     public int? OwnerId { get; set; }
     public UserResponse? Owner { get; set; }
     public IEnumerable<UserProjectResponse> UserProjects { get; set; } = new List<UserProjectResponse>();
