@@ -1,5 +1,5 @@
-using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
 using Taskify.API.Data;
 using Taskify.API.Exceptions;
 using Taskify.API.Models;
@@ -9,7 +9,7 @@ namespace Taskify.API.Services.Repositories.Repositories;
 
 public class UserProjectRepository : RepositoryBase, IUserProjectRepository
 {
-    
+
     public UserProjectRepository(TaskifyContext dbContext) : base(dbContext)
     {
     }
@@ -22,12 +22,12 @@ public class UserProjectRepository : RepositoryBase, IUserProjectRepository
     public async Task<UserProject> AddAsync(UserProject entity)
     {
         entity.LastModifiedDate = DateTime.UtcNow;
-        
+
         await _dbContext.UserProjects.AddAsync(entity);
         await _dbContext.SaveChangesAsync();
         return entity;
     }
-    
+
     public async Task<bool> DeleteAsync(UserProject entity)
     {
         _dbContext.UserProjects.Remove(entity);
@@ -38,10 +38,10 @@ public class UserProjectRepository : RepositoryBase, IUserProjectRepository
     {
         var userProject = await _dbContext.UserProjects.FindAsync(entity.Id);
         if (userProject == null) throw new NotFoundException($"UserProject with ID {entity.Id} not found.");
-        
-        return await _dbContext.SaveChangesAsync() > 0; 
+
+        return await _dbContext.SaveChangesAsync() > 0;
     }
-    
+
     public async Task<IReadOnlyList<UserProject>> GetAllAsync(Expression<Func<UserProject, bool>> predicate)
     {
         var userProjects = await _dbContext.UserProjects
@@ -57,7 +57,7 @@ public class UserProjectRepository : RepositoryBase, IUserProjectRepository
 
         return userProjects;
     }
-    
+
     public async Task<bool> IsEmailInProjectAsync(string email, int projectId)
     {
         var userProject = await _dbContext.UserProjects
@@ -66,6 +66,6 @@ public class UserProjectRepository : RepositoryBase, IUserProjectRepository
 
         return userProject != null;
     }
-    
+
 
 }

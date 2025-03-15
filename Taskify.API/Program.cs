@@ -11,38 +11,30 @@ using Taskify.API.Services.Repositories.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Lấy cấu hình JWT
 var jwtSettings = builder.Configuration.GetSection("JWT");
 
-// Lấy connection string
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
-// Thiết lập secret JWT
 JwtConfig.SetSecret(jwtSettings);
 
-// Thêm cấu hình CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowClient", policy =>
     {
-        policy.WithOrigins("https://taskifyvn.vercel.app") // Địa chỉ frontend
+        policy.AllowAnyOrigin()
               .AllowAnyHeader()
               .AllowAnyMethod()
-        // Nếu cần cookie hay thông tin đăng nhập:
               .AllowCredentials();
     });
 });
 
-// Thêm controllers + custom exception filter
 builder.Services.AddControllers(cfg =>
 {
     cfg.Filters.Add(typeof(ExceptionFilter));
 });
 
-// Tạo endpoint explorer
 builder.Services.AddEndpointsApiExplorer();
 
-// Cấu hình Swagger + Authen trong Swagger
 builder.Services.AddSwaggerGen(options =>
 {
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
@@ -76,7 +68,6 @@ builder.Services.AddControllers().AddJsonOptions(options =>
     options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve;
 });
 
-// Cấu hình JWT
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -96,38 +87,27 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-// Kết nối SQL Server
 builder.Services.AddDbContext<TaskifyContext>(options =>
     options.UseSqlServer(connectionString));
 
-// Đăng ký các Repository
 builder.Services.AddScoped<IAdminRepository, AdminRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IProjectRepository, ProjectRepository>();
 builder.Services.AddScoped<IUserProjectRepository, UserProjectRepository>();
 
 var app = builder.Build();
-// Hiển thị Swagger khi ở môi trường Development
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
 
-// Bắt buộc dùng HTTPS
+app.UseSwagger();
+app.UseSwaggerUI();
+
 app.UseHttpsRedirection();
 
-// Kích hoạt CORS (phải gọi trước khi map controllers)
 app.UseCors("AllowClient");
 
-// Kích hoạt xác thực
 app.UseAuthentication();
 
-// Kích hoạt xác thực quyền
 app.UseAuthorization();
 
-// Định tuyến controller
 app.MapControllers();
 
-// Chạy ứng dụng
 app.Run();

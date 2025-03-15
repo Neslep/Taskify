@@ -28,7 +28,6 @@ namespace Taskify.API.Controllers
         {
             var issuer = JwtConfig._configuration?["ValidIssuer"] ?? throw new ArgumentNullException(nameof(JwtConfig));
             var audience = JwtConfig._configuration?["ValidAudience"] ?? throw new ArgumentNullException(nameof(JwtConfig));
-            var expires = 8;
             var secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(JwtConfig.secret));
             var signinCredentials = new SigningCredentials(secretKey, SecurityAlgorithms.HmacSha256);
             var claims = new List<Claim> { new Claim(ClaimTypes.NameIdentifier, id), new Claim(ClaimTypes.Role, role) };
@@ -36,7 +35,7 @@ namespace Taskify.API.Controllers
                 issuer: issuer,
                 audience: audience,
                 claims: claims,
-                expires: DateTime.Now.AddHours(expires),
+                expires: DateTime.Now.AddDays(7),
                 signingCredentials: signinCredentials
             );
             return new JwtSecurityTokenHandler().WriteToken(tokenOptions);

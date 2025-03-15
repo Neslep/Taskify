@@ -1,5 +1,5 @@
-using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
 using Taskify.API.Data;
 using Taskify.API.Exceptions;
 using Taskify.API.Models;
@@ -16,32 +16,32 @@ public class ProjectRepository : RepositoryBase, IProjectRepository
     public async Task<Project> AddAsync(Project entity)
     {
         entity.LastModifiedDate = DateTime.UtcNow;
-        
+
         await _dbContext.Projects.AddAsync(entity);
         await _dbContext.SaveChangesAsync();
         return entity;
     }
-   
+
     public async Task<bool> DeleteAsync(Project entity)
     {
         _dbContext.Projects.Remove(entity);
         return await _dbContext.SaveChangesAsync() > 0;
     }
-    
+
     public async Task<bool> UpdateAsync(Project entity)
     {
         var project = await _dbContext.Projects.FindAsync(entity.Id);
         if (project == null) throw new NotFoundException($"Project with ID {entity.Id} not found.");
-        
+
         project.ProjectName = entity.ProjectName;
         project.Description = entity.Description;
         project.ProjectStatus = entity.ProjectStatus;
         project.LastModifiedDate = DateTime.UtcNow;
-        
+
         _dbContext.Projects.Update(project);
         return await _dbContext.SaveChangesAsync() > 0;
     }
-    
+
     public async Task<IReadOnlyList<Project>> GetAllAsync(Expression<Func<Project, bool>> predicate)
     {
         var projects = await _dbContext.Projects
@@ -53,7 +53,7 @@ public class ProjectRepository : RepositoryBase, IProjectRepository
             .Where(predicate)
             .ToListAsync();
 
-        
+
 
         return projects;
     }
@@ -62,6 +62,6 @@ public class ProjectRepository : RepositoryBase, IProjectRepository
     {
         return await _dbContext.Projects.FindAsync(id);
     }
-    
-    
+
+
 }
