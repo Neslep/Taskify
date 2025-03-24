@@ -13,6 +13,8 @@ namespace Taskify.API.Mapper
 
                 cfg.AddProfile<UserMappingProfile>();
                 cfg.AddProfile<ProjectMappingProfile>();
+                cfg.AddProfile<UserProjectMappingProfiles>();
+                cfg.AddProfile<TaskMappingProfiles>();
             });
 
             return config.CreateMapper();

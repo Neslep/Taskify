@@ -1,4 +1,5 @@
 using Taskify.API.Enums;
+using TaskStatus = Taskify.API.Enums.TaskStatus;
 
 namespace Taskify.API.DTOs.Responses.ProjectDTOs;
 
@@ -30,6 +31,7 @@ public class UserResponse
 public class UserProjectResponse
 {
     public int UserId { get; set; }
+    public ProjectResponse Project { get; set; }
     public int ProjectId { get; set; }
     public ProjectRole RoleInProject { get; set; }
     public UserResponse User { get; set; }
@@ -39,6 +41,14 @@ public class TaskResponse
 {
     public int Id { get; set; }
     public string TaskName { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
+    public TaskStatus Status { get; set; }
+    public int ProjectId { get; set; }  
+    public ProjectResponse Project { get; set; }
+    public int AssignedUserId { get; set; }
+    public PriorityLevel Priority { get; set; }
+    public DateTime? DueDate { get; set; }
+    public UserResponse? AssignedUser { get; set; }
     // Add other properties as needed
 }
 
