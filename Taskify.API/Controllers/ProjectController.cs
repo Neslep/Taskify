@@ -14,12 +14,10 @@ namespace Taskify.API.Controllers;
 public class ProjectController : BaseController<ProjectController>
 {
     private readonly IProjectRepository _projectRepositories;
-    private readonly IUserRepository _userRepository;
 
-    public ProjectController(IProjectRepository projectRepository, IUserRepository userRepository)
+    public ProjectController(IProjectRepository projectRepository)
     {
         _projectRepositories = projectRepository ?? throw new ArgumentNullException(nameof(projectRepository));
-        _userRepository = userRepository;
     }
 
     [HttpPost]
@@ -77,37 +75,7 @@ public class ProjectController : BaseController<ProjectController>
 
         var updatedProject = LazyMapper.Mapper.Map(request, project);
 
-        if (request.MemberEmails != null)
-        {
-            var validEmails = request.MemberEmails.Where(email => !string.IsNullOrWhiteSpace(email)).ToList();
-            foreach (var email in validEmails)
-            {
-                var user = await _userRepository.GetUserByEmailAsync(email);
-                if (user == null)
-                {
-                    return BadRequest($"User with email {email} not found.");
-                }
-
-                var isEmailInProject = await _userProjectRepository.IsEmailInProjectAsync(email, id);
-                if (isEmailInProject)
-                {
-                    var existingUserProject = updatedProject.UserProjects.FirstOrDefault(up => up.UserId == user.Id);
-                    if (existingUserProject != null)
-                    {
-                        updatedProject.UserProjects.Remove(existingUserProject);
-                    }
-                }
-                else
-                {
-                    updatedProject.UserProjects.Add(new UserProject
-                    {
-                        UserId = user.Id,
-                        RoleInProject = ProjectRole.Member
-                    });
-                }
-            }
-        }
-
+        
         await _projectRepositories.UpdateAsync(updatedProject);
         return CreateResponse(true, "Request processed successfully.", HttpStatusCode.OK,
             "Update project " + updatedProject.Id + " successfully");
