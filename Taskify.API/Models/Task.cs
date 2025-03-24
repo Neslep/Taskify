@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Taskify.API.Enums;
+using TaskStatus = Taskify.API.Enums.TaskStatus;
 
 namespace Taskify.API.Models
 {
@@ -18,7 +19,7 @@ namespace Taskify.API.Models
         [ForeignKey(nameof(AssignedUserId))]
         public User? AssignedUser { get; set; }
         [Required]
-        public Enums.TaskStatus Status { get; set; }
+        public TaskStatus Status { get; set; }
         [Required]
         public PriorityLevel Priority { get; set; }
         public DateTime? DueDate { get; set; }

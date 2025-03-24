@@ -30,7 +30,8 @@
         ToDo,
         InProgress,
         Done,
-        Cancelled
+        Cancelled,
+        Pending
     }
 
     public enum PriorityLevel
@@ -56,5 +57,6 @@
     {
         NotStarted,
         InProgress,
+        Completed
     }
 }

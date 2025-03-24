@@ -15,13 +15,11 @@ public class ProjectController : BaseController<ProjectController>
 {
     private readonly IProjectRepository _projectRepositories;
     private readonly IUserRepository _userRepository;
-    private readonly IUserProjectRepository _userProjectRepository;
 
-    public ProjectController(IProjectRepository projectRepository, IUserRepository userRepository, IUserProjectRepository userProjectRepository)
+    public ProjectController(IProjectRepository projectRepository, IUserRepository userRepository)
     {
         _projectRepositories = projectRepository ?? throw new ArgumentNullException(nameof(projectRepository));
         _userRepository = userRepository;
-        _userProjectRepository = userProjectRepository;
     }
 
     [HttpPost]
@@ -45,25 +43,6 @@ public class ProjectController : BaseController<ProjectController>
             });
         }
 
-        if (request.MemberEmails != null)
-        {
-            var validEmails = request.MemberEmails.Where(email => !string.IsNullOrWhiteSpace(email)).ToList();
-            foreach (var email in validEmails)
-            {
-                var user = await _userRepository.GetUserByEmailAsync(email);
-                if (user == null)
-                {
-                    throw new Exception($"User with email {email} not found.");
-                }
-
-                project.UserProjects.Add(new UserProject
-                {
-                    UserId = user.Id,
-                    RoleInProject = ProjectRole.Member
-                });
-            }
-        }
-
         project = await _projectRepositories.AddAsync(project);
         return CreateResponse(true, "Request processed successfully.", HttpStatusCode.OK,
             "Add project " + project.Id + " successfully");
@@ -82,6 +61,7 @@ public class ProjectController : BaseController<ProjectController>
         return CreateResponse(true, "Request processed successfully.", HttpStatusCode.OK, response);
     }
 
+    
     [HttpPut]
     [Route("{id}")]
     [Authorize(Roles = "Admin,User")]
@@ -94,7 +74,6 @@ public class ProjectController : BaseController<ProjectController>
         {
             throw new Exception("You are not authorized to update this project.");
         }
-
 
         var updatedProject = LazyMapper.Mapper.Map(request, project);
 
@@ -177,4 +156,22 @@ public class ProjectController : BaseController<ProjectController>
 
         return CreateResponse(true, "Request processed successfully.", HttpStatusCode.OK, response);
     }
+    
+    [HttpGet]
+    [Route("{id}")]
+    [Authorize(Roles = "Admin,User")]
+    public async Task<IActionResult> GetProjectById(int id)
+    {
+        var project = await _projectRepositories.GetByIdAsync(id);
+        if (project == null)
+        {
+            return NotFound($"Project with ID {id} not found.");
+        }
+
+        var response = LazyMapper.Mapper.Map<ProjectResponse>(project);
+        return CreateResponse(true, "Request processed successfully.", HttpStatusCode.OK, response);
+    }
+    
+
+   
 }

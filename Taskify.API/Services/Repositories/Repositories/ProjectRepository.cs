@@ -48,19 +48,24 @@ public class ProjectRepository : RepositoryBase, IProjectRepository
             .Include(p => p.UserProjects)
             .ThenInclude(up => up.User)
             .Include(p => p.Tasks)
+            .ThenInclude(t => t.AssignedUser) // Eager load AssignedUser
             .Include(p => p.Kanbans)
             .Include(p => p.Todolists)
             .Where(predicate)
             .ToListAsync();
-
-
 
         return projects;
     }
 
     public async Task<Project?> GetByIdAsync(int id)
     {
-        return await _dbContext.Projects.FindAsync(id);
+        return await _dbContext.Projects
+            .Include(p => p.UserProjects)
+            .ThenInclude(up => up.User)
+            .Include(p => p.Tasks)
+            .Include(p => p.Kanbans)
+            .Include(p => p.Todolists)
+            .FirstOrDefaultAsync(p => p.Id == id);
     }
 
 
